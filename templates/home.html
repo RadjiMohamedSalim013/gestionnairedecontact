@@ -2,6 +2,26 @@
 
 {% block content %}
 <h2>Liste des Contacts</h2>
+
+<form method="GET" action="/" class="mb-4">
+    <div class="input-group">
+      <input
+        type="text"
+        name="search"
+        class="form-control"
+        placeholder="Recherchez par nom, numéro ou email"
+        value="{{ search_query }}"
+      />
+      <button class="btn btn-primary" type="submit">Rechercher</button>
+    </div>
+  </form>
+  
+  {% if contacts|length == 0 %}
+    <p class="text-danger">Aucun contact trouvé pour "{{ search_query }}"</p>
+  {% endif %}
+  
+
+
 <a href="{{ url_for('add_contact') }}">Ajouter un contact</a>
 <table>
     <thead>

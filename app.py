@@ -23,8 +23,17 @@ db.init_app(app)
 
 @app.route('/')
 def home():
-    contacts = Contact.query.all()
-    return render_template('home.html', contacts=contacts)
+    #rechercher un contact
+    search_query = request.args.get('search').strip()
+    if search_query:
+        contact = Contact.query.filter(
+        (contact.naame.illike(f"%{search_query}")) |
+        (contact.email.illike(f"%{search_query}%")) |
+        (contact.phone.illike(f"%{search_query}%"))
+        ).all()
+    else:
+        contacts = Contact.query.all()
+        return render_template('home.html', contacts=contacts, search_query=search_query)
 
 
 #ajouter un contact
