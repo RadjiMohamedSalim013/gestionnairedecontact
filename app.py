@@ -9,11 +9,8 @@ app = Flask(__name__)
 
 
 app.secret_key = os.getenv('SECRET_KEY')
-print("SQLALCHEMY_DATABASE_URI:", os.getenv('SQLALCHEMY_DATABASE_URI'))
-
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('SQLALCHEMY_DATABASE_URI')  
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-print("Base de données :", os.getenv('SQLALCHEMY_DATABASE_URI'))
 
 
 db.init_app(app)
@@ -21,19 +18,7 @@ db.init_app(app)
 
 
 
-@app.route('/')
-def home():
-    #rechercher un contact
-    search_query = request.args.get('search').strip()
-    if search_query:
-        contact = Contact.query.filter(
-        (contact.naame.illike(f"%{search_query}")) |
-        (contact.email.illike(f"%{search_query}%")) |
-        (contact.phone.illike(f"%{search_query}%"))
-        ).all()
-    else:
-        contacts = Contact.query.all()
-        return render_template('home.html', contacts=contacts, search_query=search_query)
+
 
 
 #ajouter un contact
