@@ -1,0 +1,286 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Liste des Contacts</h2>
+
+    <div class="mb-4">
+        <a href="/export/csv" class="btn btn-success">Exporter en CSV</a>
+        <a href="/export/excel" class="btn btn-primary">Exporter en Excel</a>
+
+    </div>
+
+    <!-- Formulaire de recherche -->
+    <form method="GET" action="/" class="mb-4">
+        <div class="input-group">
+            <input
+                type="text"
+                name="search"
+                class="form-control"
+                placeholder="Recherchez par nom, numéro ou email"
+                value="{{ search_query }}"
+            />
+            <button class="btn btn-primary" type="submit">Rechercher</button>
+        </div>
+    </form>
+
+    <!-- Message si aucun contact trouvé -->
+    {% if contacts|length == 0 %}
+        <p class="text-danger">Aucun contact trouvé pour "{{ search_query }}"</p>
+    {% endif %}
+
+    <!-- Table des contacts -->
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nom</th>
+                    <th>Téléphone</th>
+                    <th>Email</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for contact in contacts %}
+                <tr>
+                    <td>{{ contact.id }}</td>
+                    <td>{{ contact.name }}</td>
+                    <td>{{ contact.phone }}</td>
+                    <td>{{ contact.email }}</td>
+                    <td>
+                        <button
+                            class="btn btn-warning btn-sm"
+                            data-bs-toggle="modal"
+                            data-bs-target="#editModal{{ contact.id }}"
+                        >
+                            Modifier
+                        </button>
+                        <button
+                            class="btn btn-danger btn-sm"
+                            data-bs-toggle="modal"
+                            data-bs-target="#deleteModal{{ contact.id }}"
+                        >
+                            Supprimer
+                        </button>
+                        <button class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#qrModal{{ contact.id }}">QR Code</button>
+                    </td>
+                </tr>
+
+                <!-- Modal pour l'édition -->
+                <div
+                    class="modal fade"
+                    id="editModal{{ contact.id }}"
+                    tabindex="-1"
+                    aria-labelledby="editModalLabel{{ contact.id }}"
+                    aria-hidden="true"
+                >
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="editModalLabel{{ contact.id }}">
+                                    Modifier Contact
+                                </h5>
+                                <button
+                                    type="button"
+                                    class="btn-close"
+                                    data-bs-dismiss="modal"
+                                    aria-label="Close"
+                                ></button>
+                            </div>
+                            <form method="POST" action="{{ url_for('edit_contact', contact_id=contact.id) }}">
+                                <div class="modal-body">
+                                    <div class="mb-3">
+                                        <label for="name{{ contact.id }}" class="form-label">Nom</label>
+                                        <input
+                                            type="text"
+                                            class="form-control"
+                                            id="name{{ contact.id }}"
+                                            name="name"
+                                            value="{{ contact.name }}"
+                                        />
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="phone{{ contact.id }}" class="form-label">Téléphone</label>
+                                        <input
+                                            type="text"
+                                            class="form-control"
+                                            id="phone{{ contact.id }}"
+                                            name="phone"
+                                            value="{{ contact.phone }}"
+                                        />
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="email{{ contact.id }}" class="form-label">Email</label>
+                                        <input
+                                            type="email"
+                                            class="form-control"
+                                            id="email{{ contact.id }}"
+                                            name="email"
+                                            value="{{ contact.email }}"
+                                        />
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button
+                                        type="button"
+                                        class="btn btn-secondary"
+                                        data-bs-dismiss="modal"
+                                    >
+                                        Annuler
+                                    </button>
+                                    <button type="submit" class="btn btn-primary">Enregistrer</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal pour la suppression -->
+                <div
+                    class="modal fade"
+                    id="deleteModal{{ contact.id }}"
+                    tabindex="-1"
+                    aria-labelledby="deleteModalLabel{{ contact.id }}"
+                    aria-hidden="true"
+                >
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="deleteModalLabel{{ contact.id }}">
+                                    Confirmer la suppression
+                                </h5>
+                                <button
+                                    type="button"
+                                    class="btn-close"
+                                    data-bs-dismiss="modal"
+                                    aria-label="Close"
+                                ></button>
+                            </div>
+                            <div class="modal-body">
+                                Êtes-vous sûr de vouloir supprimer le contact
+                                <strong>{{ contact.name }}</strong> ?
+                            </div>
+                            <div class="modal-footer">
+                                <button
+                                    type="button"
+                                    class="btn btn-secondary"
+                                    data-bs-dismiss="modal"
+                                >
+                                    Annuler
+                                </button>
+                                <form
+                                    method="POST"
+                                    action="{{ url_for('delete_contact', contact_id=contact.id) }}"
+                                >
+                                    <button type="submit" class="btn btn-danger">Supprimer</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% for contact in contacts %}
+    <!-- Modal QR Code -->
+    <div class="modal fade" id="qrModal{{ contact.id }}" tabindex="-1" aria-labelledby="qrModalLabel{{ contact.id }}" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="qrModalLabel{{ contact.id }}">QR Code pour {{ contact.name }}</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body text-center">
+            <img src="{{ url_for('generate_qr', contact_id=contact.id) }}" alt="QR Code de {{ contact.name }}" class="img-fluid">
+            <p class="mt-2">Scannez ce code pour voir les détails du contact.</p>
+          </div>
+          <div class="modal-footer">
+            <a href="{{ url_for('generate_qr', contact_id=contact.id) }}" class="btn btn-success" download>Télécharger</a>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+    
+    
+
+    <!-- Bouton pour ajouter un contact -->
+    <button class="btn btn-success mt-4" data-bs-toggle="modal" data-bs-target="#addContactModal">
+        Ajouter un contact
+    </button>
+
+    <!-- Modal pour ajouter un contact -->
+    <div
+        class="modal fade"
+        id="addContactModal"
+        tabindex="-1"
+        aria-labelledby="addContactModalLabel"
+        aria-hidden="true"
+    >
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addContactModalLabel">Ajouter un Contact</h5>
+                    <button
+                        type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal"
+                        aria-label="Close"
+                    ></button>
+                </div>
+                <form method="POST" action="{{ url_for('add_contact') }}">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Nom</label>
+                            <input
+                                type="text"
+                                class="form-control"
+                                id="name"
+                                name="name"
+                                placeholder="Entrez le nom"
+                                required
+                            />
+                        </div>
+                        <div class="mb-3">
+                            <label for="phone" class="form-label">Téléphone</label>
+                            <input
+                                type="text"
+                                class="form-control"
+                                id="phone"
+                                name="phone"
+                                placeholder="Entrez le numéro de téléphone"
+                                required
+                            />
+                        </div>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input
+                                type="email"
+                                class="form-control"
+                                id="email"
+                                name="email"
+                                placeholder="Entrez l'email"
+                                required
+                            />
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button
+                            type="button"
+                            class="btn btn-secondary"
+                            data-bs-dismiss="modal"
+                        >
+                            Annuler
+                        </button>
+                        <button type="submit" class="btn btn-success">Ajouter</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
