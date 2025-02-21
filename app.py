@@ -176,7 +176,7 @@ def generate_qr(contact_id):
 @app.route('/contact/<int:contact_id>')
 def contact_details(contact_id):
     contact = Contact.query.get_or_404(contact_id)
-    return render_template('contact_details.html', contact=contact)
+    return render_template('contact_detail.html', contact=contact)
 
     
 
