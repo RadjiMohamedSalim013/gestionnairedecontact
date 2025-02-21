@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, Response
+from flask_migrate import Migrate
 from models import db, Contact
 from dotenv import load_dotenv
 import os
@@ -21,6 +22,8 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 
 db.init_app(app)
+migrate = Migrate(app, db)
+
 #fake = Faker()
 
 
@@ -175,6 +178,4 @@ def contact_details(contact_id):
     
 
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
     app.run(debug=True)
